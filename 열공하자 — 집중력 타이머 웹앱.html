@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f7f7ff">
+  <title>열공하자 | 집중력 타이머</title>
+  <style>
+    :root {
+      --ink: #292844;
+      --muted: #85849b;
+      --purple: #7867ee;
+      --purple-dark: #6553df;
+      --purple-light: #eeebff;
+      --pink: #ff8eae;
+      --yellow: #ffcf67;
+      --green: #53bf91;
+      --paper: #fff;
+      --bg: #f7f7ff;
+      --line: #efedf6;
+      --shadow: 0 14px 40px rgba(57, 47, 106, .08);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 6% 4%, rgba(255, 207, 103, .18), transparent 23rem),
+        radial-gradient(circle at 95% 16%, rgba(255, 142, 174, .13), transparent 25rem),
+        var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+        "Noto Sans KR", "Malgun Gothic", sans-serif;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .app {
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      background: var(--purple-light);
+      font-size: 25px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -1px;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.8);
+    }
+
+    .profile-avatar {
+      display: grid;
+      place-items: center;
+      width: 31px;
+      height: 31px;
+      border-radius: 50%;
+      background: #ffe7ef;
+    }
+
+    .profile input {
+      width: 100px;
+      border: 0;
+      outline: 0;
+      color: var(--ink);
+      background: transparent;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.55fr .85fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      border: 1px solid rgba(239, 237, 246, .9);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .timer-card {
+      position: relative;
+      overflow: hidden;
+      padding: 28px;
+      text-align: center;
+    }
+
+    .timer-card::after {
+      position: absolute;
+      right: -45px;
+      bottom: -85px;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: rgba(238, 235, 255, .65);
+      content: "";
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--purple);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .timer-card h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -.7px;
+    }
+
+    .timer-card .subheading {
+      margin: 7px 0 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .time-inputs {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin: 0 auto 20px;
+    }
+
+    .time-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      width: 76px;
+    }
+
+    .time-field input {
+      width: 100%;
+      padding: 10px 6px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      outline: 0;
+      background: #fbfaff;
+      color: var(--ink);
+      font-size: 22px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .time-field input:focus {
+      border-color: #b7adff;
+      box-shadow: 0 0 0 3px rgba(120, 103, 238, .12);
+    }
+
+    .time-field label {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .time-colon {
+      margin-top: -16px;
+      color: #b5b2c6;
+      font-size: 25px;
+      font-weight: 700;
+    }
+
+    .timer-display {
+      margin: 7px 0 17px;
+      color: var(--ink);
+      font-size: clamp(54px, 8vw, 76px);
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      letter-spacing: -4px;
+      line-height: 1;
+    }
+
+    .timer-display.running { color: var(--purple); }
+
+    .timer-actions {
+      display: flex;
+      justify-content: center;
+      gap: 9px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn {
+      min-height: 44px;
+      padding: 0 20px;
+      border: 0;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 800;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      color: white;
+      background: var(--purple);
+      box-shadow: 0 7px 16px rgba(120, 103, 238, .22);
+    }
+
+    .btn-primary:hover { background: var(--purple-dark); }
+
+    .btn-secondary {
+      color: #625f78;
+      background: #f3f2f8;
+    }
+
+    .timer-status {
+      min-height: 18px;
+      margin: 13px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .score-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100%;
+      padding: 25px;
+      background: linear-gradient(145deg, #fff 10%, #fff9eb 100%);
+    }
+
+    .score-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .score-top h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .score-badge {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 15px;
+      background: #fff1c9;
+      font-size: 23px;
+    }
+
+    .score-number {
+      margin: 23px 0 4px;
+      color: #e09c20;
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+
+    .score-caption {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .score-tip {
+      margin: 18px 0 0;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255, 207, 103, .2);
+      color: #80642e;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 18px;
+    }
+
+    .tasks-card, .ranking-card { padding: 23px; }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 17px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -.5px;
+    }
+
+    .small-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .task-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .task-form input {
+      min-width: 0;
+      flex: 1;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      outline: 0;
+      background: #fbfaff;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .task-form input:focus {
+      border-color: #b7adff;
+      box-shadow: 0 0 0 3px rgba(120, 103, 238, .1);
+    }
+
+    .task-form .btn {
+      min-width: 75px;
+      padding: 0 14px;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: #fff;
+    }
+
+    .task-icon {
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      background: #f2efff;
+      font-size: 17px;
+    }
+
+    .task-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .task-title {
+      overflow: hidden;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .task-meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .task-item.is-done .task-title {
+      color: #a4a2b2;
+      text-decoration: line-through;
+    }
+
+    .task-item.is-done .task-icon { background: #e7f8ef; }
+
+    .task-complete {
+      flex: 0 0 auto;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 11px;
+      background: var(--purple-light);
+      color: var(--purple-dark);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .task-complete:hover:not(:disabled) { background: #e1dcff; }
+    .task-complete:disabled { cursor: default; opacity: .6; }
+    .task-item.is-done .task-complete {
+      background: #eaf7ef;
+      color: #41966f;
+    }
+
+    .empty-state {
+      padding: 24px 10px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .ranking-note {
+      margin: -8px 0 15px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .ranking-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .rank-row {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 11px 12px;
+      border-radius: 15px;
+      background: #faf9fd;
+    }
+
+    .rank-row.me {
+      border: 1px solid #ded9ff;
+      background: #f4f1ff;
+    }
+
+    .rank-number {
+      width: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .rank-medal { font-size: 16px; }
+
+    .rank-avatar {
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+      width: 33px;
+      height: 33px;
+      border-radius: 50%;
+      background: #ffe8ee;
+      font-size: 16px;
+    }
+
+    .rank-row:nth-child(2n) .rank-avatar { background: #e9e5ff; }
+    .rank-name { flex: 1; font-size: 13px; font-weight: 700; }
+    .rank-score { color: #7463df; font-size: 13px; font-weight: 900; }
+
+    .footer {
+      margin: 20px 0 0;
+      color: #a6a4b3;
+      font-size: 11px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .app { width: min(100% - 24px, 540px); padding-top: 18px; }
+      .hero, .content-grid { grid-template-columns: 1fr; }
+      .hero { gap: 12px; margin-bottom: 12px; }
+      .content-grid { gap: 12px; }
+      .timer-card { padding: 24px 17px; }
+      .score-card { min-height: 190px; }
+      .score-number { margin-top: 15px; }
+      .score-tip { margin-top: 12px; }
+      .tasks-card, .ranking-card { padding: 19px; }
+    }
+
+    @media (max-width: 420px) {
+      .topbar { margin-bottom: 18px; }
+      .brand h1 { font-size: 19px; }
+      .brand p { font-size: 11px; }
+      .brand-icon { width: 42px; height: 42px; }
+      .profile { gap: 6px; padding: 6px 9px; }
+      .profile input { width: 75px; font-size: 12px; }
+      .time-field { width: 68px; }
+      .timer-actions .btn { flex: 1; padding: 0 12px; }
+      .task-complete { padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">🐰</div>
+        <div>
+          <h1>열공하자</h1>
+          <p>오늘도 한 걸음, 차근차근!</p>
+        </div>
+      </div>
+      <label class="profile" aria-label="사용자 닉네임">
+        <span class="profile-avatar" aria-hidden="true">🌷</span>
+        <input id="nickname" maxlength="12" value="나" aria-label="닉네임 입력">
+      </label>
+    </header>
+
+    <section class="hero" aria-label="공부 타이머와 점수">
+      <div class="card timer-card">
+        <p class="eyebrow">FOCUS TIME</p>
+        <h2>집중할 시간을 정해 볼까요?</h2>
+        <p class="subheading">공부 시간을 설정하고 타이머를 시작해요.</p>
+
+        <div class="time-inputs" id="timeInputs">
+          <div class="time-field">
+            <input id="hours" type="number" min="0" max="99" value="0" inputmode="numeric" aria-label="시간">
+            <label for="hours">시간</label>
+          </div>
+          <span class="time-colon" aria-hidden="true">:</span>
+          <div class="time-field">
+            <input id="minutes" type="number" min="0" max="59" value="25" inputmode="numeric" aria-label="분">
+            <label for="minutes">분</label>
+          </div>
+          <span class="time-colon" aria-hidden="true">:</span>
+          <div class="time-field">
+            <input id="seconds" type="number" min="0" max="59" value="0" inputmode="numeric" aria-label="초">
+            <label for="seconds">초</label>
+          </div>
+        </div>
+
+        <div class="timer-display" id="timerDisplay" aria-live="off">00:25:00</div>
+        <div class="timer-actions">
+          <button class="btn btn-primary" id="startButton" type="button">▶ 시작하기</button>
+          <button class="btn btn-secondary" id="resetButton" type="button">↻ 초기화</button>
+        </div>
+        <p class="timer-status" id="timerStatus" aria-live="polite">할 일을 추가하고 집중을 시작해 보세요.</p>
+      </div>
+
+      <aside class="card score-card">
+        <div>
+          <div class="score-top">
+            <div>
+              <p class="eyebrow">MY POINTS</p>
+              <h2>차곡차곡 쌓인 점수</h2>
+            </div>
+            <div class="score-badge" aria-hidden="true">⭐</div>
+          </div>
+          <div class="score-number"><span id="scoreValue">0</span><small style="font-size:20px">점</small></div>
+          <p class="score-caption">완료한 할 일마다 10점씩 적립돼요.</p>
+        </div>
+        <p class="score-tip">💡 타이머가 작동하는 동안 할 일을 완료하면 점수가 쌓여요. 오늘의 작은 성취를 모아봐요!</p>
+      </aside>
+    </section>
+
+    <section class="content-grid">
+      <section class="card tasks-card" aria-labelledby="tasksHeading">
+        <div class="section-heading">
+          <h2 id="tasksHeading">📝 오늘의 할 일</h2>
+          <span class="small-label" id="taskCount">0개</span>
+        </div>
+        <form class="task-form" id="taskForm">
+          <input id="taskInput" type="text" maxlength="80" placeholder="예: 수학 문제집 3쪽 풀기" autocomplete="off" aria-label="새 할 일">
+          <button class="btn btn-primary" type="submit">추가</button>
+        </form>
+        <div class="task-list" id="taskList"></div>
+      </section>
+
+      <section class="card ranking-card" aria-labelledby="rankingHeading">
+        <div class="section-heading">
+          <h2 id="rankingHeading">🏆 열공 랭킹</h2>
+          <span class="small-label">누적 점수</span>
+        </div>
+        <p class="ranking-note">이 브라우저에서 기록한 내 점수와 예시 사용자들의 점수를 비교해요.</p>
+        <div class="ranking-list" id="rankingList"></div>
+      </section>
+    </section>
+
+    <p class="footer">내 점수와 할 일은 이 브라우저에 저장됩니다. 다른 사용자와의 실시간 점수 공유에는 서버가 필요합니다.</p>
+  </main>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "yeolgonghaja-v1";
+      const $ = (id) => document.getElementById(id);
+
+      const hoursInput = $("hours");
+      const minutesInput = $("minutes");
+      const secondsInput = $("seconds");
+      const timerDisplay = $("timerDisplay");
+      const timerStatus = $("timerStatus");
+      const startButton = $("startButton");
+      const resetButton = $("resetButton");
+      const nicknameInput = $("nickname");
+      const scoreValue = $("scoreValue");
+      const taskForm = $("taskForm");
+      const taskInput = $("taskInput");
+      const taskList = $("taskList");
+      const taskCount = $("taskCount");
+      const rankingList = $("rankingList");
+
+      const samplePlayers = [
+        { name: "별빛공부", score: 120, avatar: "🐻" },
+        { name: "초코라떼", score: 90, avatar: "🐱" },
+        { name: "꾸준한토끼", score: 60, avatar: "🐸" },
+        { name: "햇살이", score: 30, avatar: "🐣" }
+      ];
+
+      let state = loadState();
+      let remainingSeconds = 25 * 60;
+      let timerInterval = null;
+      let running = false;
+
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+          return {
+            nickname: typeof saved.nickname === "string" ? saved.nickname : "나",
+            score: Number.isFinite(saved.score) ? saved.score : 0,
+            tasks: Array.isArray(saved.tasks) ? saved.tasks : []
+          };
+        } catch {
+          return { nickname: "나", score: 0, tasks: [] };
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {
+          // 브라우저 저장소를 사용할 수 없는 경우에도 앱은 계속 동작합니다.
+        }
+      }
+
+      function formatTime(total) {
+        const safe = Math.max(0, total);
+        const h = Math.floor(safe / 3600);
+        const m = Math.floor((safe % 3600) / 60);
+        const s = safe % 60;
+        return [h, m, s].map(value => String(value).padStart(2, "0")).join(":");
+      }
+
+      function getInputSeconds() {
+        const h = Math.max(0, Math.min(99, Number(hoursInput.value) || 0));
+        const m = Math.max(0, Math.min(59, Number(minutesInput.value) || 0));
+        const s = Math.max(0, Math.min(59, Number(secondsInput.value) || 0));
+        hoursInput.value = h;
+        minutesInput.value = m;
+        secondsInput.value = s;
+        return h * 3600 + m * 60 + s;
+      }
+
+      function updateDisplay() {
+        timerDisplay.textContent = formatTime(remainingSeconds);
+        timerDisplay.classList.toggle("running", running);
+      }
+
+      function renderTasks() {
+        taskList.replaceChildren();
+        const unfinished = state.tasks.filter(task => !task.done).length;
+        taskCount.textContent = `${unfinished}개 남음`;
+
+        if (state.tasks.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty-state";
+          empty.textContent = "아직 할 일이 없어요. 작은 목표부터 추가해 보세요 🌱";
+          taskList.appendChild(empty);
+          return;
+        }
+
+        state.tasks.forEach(task => {
+          const row = document.createElement("div");
+          row.className = `task-item${task.done ? " is-done" : ""}`;
+
+          const icon = document.createElement("div");
+          icon.className = "task-icon";
+          icon.textContent = task.done ? "✅" : "📌";
+
+          const copy = document.createElement("div");
+          copy.className = "task-copy";
+
+          const title = document.createElement("div");
+          title.className = "task-title";
+          title.textContent = task.text;
+
+          const meta = document.createElement("div");
+          meta.className = "task-meta";
+          meta.textContent = task.done ? "완료했어요!" : "집중 타이머 중 완료하면 +10점";
+
+          copy.append(title, meta);
+
+          const button = document.createElement("button");
+          button.className = "task-complete";
+          button.type = "button";
+          button.textContent = task.done ? "완료" : "완료 +10";
+          button.disabled = task.done;
+
+          button.addEventListener("click", () => completeTask(task.id));
+
+          row.append(icon, copy, button);
+          taskList.appendChild(row);
+        });
+      }
+
+      function renderRanking() {
+        const everyone = [
+          ...samplePlayers.map(player => ({ ...player, isMe: false })),
+          { name: state.nickname || "나", score: state.score, avatar: "🌷", isMe: true }
+        ].sort((a, b) => b.score - a.score || (a.isMe ? -1 : 1));
+
+        rankingList.replaceChildren();
+        everyone.forEach((player, index) => {
+          const row = document.createElement("div");
+          row.className = `rank-row${player.isMe ? " me" : ""}`;
+
+          const rank = document.createElement("span");
+          rank.className = "rank-number";
+          rank.textContent = ["🥇", "🥈", "🥉"][index] || `${index + 1}`;
+
+          const avatar = document.createElement("span");
+          avatar.className = "rank-avatar";
+          avatar.textContent = player.avatar;
+
+          const name = document.createElement("span");
+          name.className = "rank-name";
+          name.textContent = player.isMe ? `${player.name} (나)` : player.name;
+
+          const score = document.createElement("span");
+          score.className = "rank-score";
+          score.textContent = `${player.score}점`;
+
+          row.append(rank, avatar, name, score);
+          rankingList.appendChild(row);
+        });
+      }
+
+      function renderScore() {
+        scoreValue.textContent = state.score;
+        renderRanking();
+      }
+
+      function completeTask(id) {
+        const task = state.tasks.find(item => item.id === id);
+        if (!task || task.done) return;
+
+        task.done = true;
+        if (running && remainingSeconds > 0) {
+          state.score += 10;
+          timerStatus.textContent = "멋져요! 할 일을 완료하고 10점을 적립했어요 🎉";
+        } else {
+          timerStatus.textContent = "할 일을 완료했어요! 타이머가 작동 중일 때 완료하면 10점을 받아요.";
+        }
+
+        saveState();
+        renderTasks();
+        renderScore();
+      }
+
+      function showCompletionPrompt() {
+        const overlay = document.createElement("div");
+        overlay.setAttribute("role", "dialog");
+        overlay.setAttribute("aria-modal", "true");
+        overlay.setAttribute("aria-labelledby", "completionTitle");
+        Object.assign(overlay.style, {
+          position: "fixed", inset: "0", zIndex: "1000", display: "grid",
+          placeItems: "center", padding: "20px", background: "rgba(41, 40, 68, .45)"
+        });
+
+        const dialog = document.createElement("div");
+        Object.assign(dialog.style, {
+          width: "min(100%, 380px)", padding: "28px 24px", borderRadius: "24px",
+          background: "#fff", boxShadow: "0 18px 50px rgba(41, 40, 68, .2)",
+          textAlign: "center", color: "#292844"
+        });
+
+        const icon = document.createElement("div");
+        icon.textContent = "⏰";
+        icon.style.fontSize = "42px";
+        icon.style.marginBottom = "10px";
+
+        const title = document.createElement("h2");
+        title.id = "completionTitle";
+        title.textContent = "집중 시간이 끝났어요!";
+        Object.assign(title.style, { margin: "0 0 9px", fontSize: "21px" });
+
+        const message = document.createElement("p");
+        message.textContent = "정해진 시간 동안 공부 목표를 달성했나요?";
+        Object.assign(message.style, { margin: "0 0 20px", color: "#85849b", fontSize: "14px" });
+
+        const actions = document.createElement("div");
+        Object.assign(actions.style, { display: "flex", justifyContent: "center", gap: "10px" });
+
+        const makeButton = (label, background, foreground, response) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = label;
+          Object.assign(button.style, {
+            minWidth: "100px", minHeight: "44px", padding: "0 18px", border: "0",
+            borderRadius: "14px", background, color: foreground, font: "inherit",
+            fontWeight: "800", cursor: "pointer"
+          });
+          button.addEventListener("click", () => {
+            if (label === "예, 성공했어요!") {
+              state.score += 10;
+              saveState();
+              renderScore();
+              timerStatus.textContent = "해냈어요! 오늘의 집중 목표를 달성해 10점을 적립했어요 🎉";
+            } else {
+              timerStatus.textContent = response;
+            }
+            overlay.remove();
+          });
+          return button;
+        };
+
+        actions.append(
+          makeButton("예, 성공했어요!", "#7867ee", "#fff", "해냈어요! 오늘의 집중 목표를 달성했어요 🎉"),
+          makeButton("아니요", "#f3f2f8", "#625f78", "괜찮아요. 다음 집중 시간에 다시 도전해 봐요 🌱")
+        );
+        dialog.append(icon, title, message, actions);
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+        actions.querySelector("button").focus();
+      }
+
+
+      function startTimer() {
+        if (running) {
+          running = false;
+          clearInterval(timerInterval);
+          timerInterval = null;
+          startButton.textContent = "▶ 계속하기";
+          timerStatus.textContent = "잠시 멈췄어요. 준비되면 다시 시작해요.";
+          updateDisplay();
+          return;
+        }
+
+        if (remainingSeconds <= 0) {
+          remainingSeconds = getInputSeconds();
+        }
+
+        if (remainingSeconds <= 0) {
+          timerStatus.textContent = "1초 이상 시간을 설정해 주세요.";
+          return;
+        }
+
+        running = true;
+        startButton.textContent = "Ⅱ 잠시 멈춤";
+        timerStatus.textContent = "집중 모드예요. 하나씩 차근차근 해봐요! 💪";
+        updateDisplay();
+
+        timerInterval = setInterval(() => {
+          remainingSeconds -= 1;
+          updateDisplay();
+
+          if (remainingSeconds <= 0) {
+            remainingSeconds = 0;
+            running = false;
+            clearInterval(timerInterval);
+            timerInterval = null;
+            startButton.textContent = "▶ 다시 시작";
+            timerStatus.textContent = "집중 시간 완료! 오늘도 정말 수고했어요 🎊";
+            showCompletionPrompt();
+            updateDisplay();
+          }
+        }, 1000);
+      }
+
+      function resetTimer() {
+        running = false;
+        clearInterval(timerInterval);
+        timerInterval = null;
+        remainingSeconds = getInputSeconds();
+        startButton.textContent = "▶ 시작하기";
+        timerStatus.textContent = "할 일을 추가하고 집중을 시작해 보세요.";
+        updateDisplay();
+      }
+
+      [hoursInput, minutesInput, secondsInput].forEach(input => {
+        input.addEventListener("change", () => {
+          if (!running) {
+            remainingSeconds = getInputSeconds();
+            updateDisplay();
+          }
+        });
+      });
+
+      taskForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const text = taskInput.value.trim();
+        if (!text) {
+          taskInput.focus();
+          return;
+        }
+
+        state.tasks.unshift({
+          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          text,
+          done: false
+        });
+        taskInput.value = "";
+        saveState();
+        renderTasks();
+        taskInput.focus();
+      });
+
+      nicknameInput.addEventListener("input", () => {
+        state.nickname = nicknameInput.value.trim().slice(0, 12) || "나";
+        saveState();
+        renderRanking();
+      });
+
+      startButton.addEventListener("click", startTimer);
+      resetButton.addEventListener("click", resetTimer);
+
+      nicknameInput.value = state.nickname;
+      renderTasks();
+      renderScore();
+      remainingSeconds = getInputSeconds();
+      updateDisplay();
+    })();
+  </script>
+</body>
+</html>
